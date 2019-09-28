@@ -1,0 +1,22 @@
+<% include partials/header %>	
+    <form action="/water/survey" method="POST">
+        <p>Your Name :</p>
+        <input type="text" name="name">
+        <p>Your Aadhar No. :</p>
+        <input type="text" name="aadhar">
+        <p>Q1. What is total amount of water you received today?</p>
+        <input type="text" name="one">
+        <br>
+        <p>Q2. What is your daily requirement of water?</p>
+        <input type="text" name="two">
+        <br>
+        <p>Q3. Do you need extra water supply for irrigation?</p>
+        <input type="radio" name="three" value="yes">YES<br>
+        <input type="radio" name="three" value="no">NO
+        <br>
+        <p>Q4. Total cropland area you have is :</p>
+        <input type="text" name="four">
+        <button>SUBMIT</button>
+    </form>
+</body>
+<% include partials/footer %>	
