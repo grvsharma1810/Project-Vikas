@@ -6,7 +6,7 @@
 *    Mastering Data Visualization with D3.js
 *    5.7 - D3 Transitions
 */
-data = [
+/*data = [
 	{
 		"month": "January",
 		"revenue": "13432",
@@ -42,7 +42,7 @@ data = [
 		"revenue": "54273",
 		"profit": "47452"
 	}
-]
+]*/
 var margin = { left:80, right:20, top:50, bottom:100 };
 
 var width = 600 - margin.left - margin.right,
@@ -93,20 +93,26 @@ var yLabel = g.append("text")
     .text("Revenue");
 
 
-data.forEach(function(d) {
-    d.revenue = +d.revenue;
-    d.profit = +d.profit;
-});
-
-d3.interval(function(){
-    var newData = flag ? data : data.slice(1);
-
-    update(newData)
-    flag = !flag
-}, 1000);
-
-// Run the vis for the first time
-update(data);
+    d3.json("/public/data/revenues.json").then(function(data){
+        // console.log(data);
+    
+        // Clean data
+        data.forEach(function(d) {
+            d.revenue = +d.revenue;
+            d.profit = +d.profit;
+        });
+    
+        d3.interval(function(){
+            var newData = flag ? data : data.slice(1);
+    
+            update(newData)
+            flag = !flag
+        }, 1000);
+    
+        // Run the vis for the first time
+        update(data);
+    });
+    
 
 function update(data) {
     var value = flag ? "revenue" : "profit";
