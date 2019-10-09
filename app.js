@@ -5,11 +5,17 @@ var express               = require("express"),
     User                  = require("./models/user"),
     LocalStrategy         = require("passport-local"),
     passportLocalMongoose = require("passport-local-mongoose");
+    const fetch           = require("node-fetch");
+    const fs = require('fs');
 
 app = express();
 app.set("view engine","ejs");
 app.use(bodyParser.urlencoded({extended:true}));
-app.use(express.static(__dirname + "/public"));
+// app.use('/public',function(req,res,next){
+//     console.log(req.url);
+//     next();
+// })
+app.use('/public',express.static('public'));
 mongoose.connect("mongodb://localhost/Vikas",{useNewUrlParser: true,useUnifiedTopology: true});
 mongoose.set('useCreateIndex', true);
 
@@ -86,7 +92,7 @@ var categories = ["Water Availability", "Electricity", "Cleanliness", "Per-Capit
 app.get("/",function(req,res){
     res.render("landing")
 });
-
+ 
 app.get("/index",function(req,res){
     res.render("index",{categories:categories});
 });
@@ -94,6 +100,10 @@ app.get("/index",function(req,res){
 //Render Register Page
 app.get("/register",function(req,res){
     res.render("register")
+});
+
+app.get("/graph",function(req,res){    
+    res.sendFile(__dirname + "/public/graph.html");
 });
 
 //New User Creation
@@ -154,7 +164,7 @@ app.get("/logout",function(req,res){
 app.get("*",function(req,res){
     res.send("EROR 404!!")
 });
-
-app.listen(3000,function(){
-    console.log("Server Started");
+var port = 8000;
+app.listen(port,function(){
+    console.log("Server Started at port " + port);
 });
