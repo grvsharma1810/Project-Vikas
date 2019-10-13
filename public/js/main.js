@@ -1,166 +1,68 @@
-// const fs = require('fs');
-// let rawdata = fs.readFileSync('public/data/revenues.json');
-// let data = JSON.parse(rawdata);
 /*
 *    main.js
 *    Mastering Data Visualization with D3.js
-*    5.7 - D3 Transitions
+*    10.4 - Converting our code to OOP
 */
-/*data = [
-	{
-		"month": "January",
-		"revenue": "13432",
-		"profit": "8342"
-	},
-	{
-		"month": "February",
-		"revenue": "19342",
-		"profit": "10342"
-	},
-	{
-		"month": "March",
-		"revenue": "17443",
-		"profit": "15423"
-	},
-	{
-		"month": "April",
-		"revenue": "26342",
-		"profit": "18432"
-	},
-	{
-		"month": "May",
-		"revenue": "34213",
-		"profit": "29434"
-	},
-	{
-		"month": "June",
-		"revenue": "50321",
-		"profit": "45343"
-	},
-	{
-		"month": "July",
-		"revenue": "54273",
-		"profit": "47452"
-	}
-]*/
-var margin = { left:80, right:20, top:50, bottom:100 };
 
-var width = 600 - margin.left - margin.right,
-    height = 400 - margin.top - margin.bottom;
+var filteredData;
+var lineChart1,
+    lineChart2,
+    lineChart3,
+    lineChart4,
+    lineChart5,
+    pieChart1;
+var parseTime = d3.timeParse("%d/%m/%Y");
+var formatTime = d3.timeFormat("%d/%m/%Y");
 
-var flag = true;
+// Event listeners
+$("#coin-select").on("change", updateCharts)
+$("#var-select").on("change", updateCharts)
 
-var t = d3.transition().duration(750);
-    
-var g = d3.select("#chart-area")
-    .append("svg")
-        .attr("width", width + margin.left + margin.right)
-        .attr("height", height + margin.top + margin.bottom)
-    .append("g")
-        .attr("transform", "translate(" + margin.left + ", " + margin.top + ")");
+// Add jQuery UI slider
+$("#date-slider").slider({
+    range: true,
+    max: parseTime("31/10/2017").getTime(),
+    min: parseTime("12/5/2013").getTime(),
+    step: 86400000, // One day
+    values: [parseTime("12/5/2013").getTime(), parseTime("31/10/2017").getTime()],
+    slide: function(event, ui){
+        $("#dateLabel1").text(formatTime(new Date(ui.values[0])));
+        $("#dateLabel2").text(formatTime(new Date(ui.values[1])));
+        updateCharts();
+    }
+});
 
-var xAxisGroup = g.append("g")
-    .attr("class", "x axis")
-    .attr("transform", "translate(0," + height +")");
-
-var yAxisGroup = g.append("g")
-    .attr("class", "y axis");
-
-// X Scale
-var x = d3.scaleBand()
-    .range([0, width])
-    .padding(0.2);
-
-// Y Scale
-var y = d3.scaleLinear()
-    .range([height, 0]);
-
-// X Label
-g.append("text")
-    .attr("y", height + 50)
-    .attr("x", width / 2)
-    .attr("font-size", "20px")
-    .attr("text-anchor", "middle")
-    .text("Month");
-
-// Y Label
-var yLabel = g.append("text")
-    .attr("y", -60)
-    .attr("x", -(height / 2))
-    .attr("font-size", "20px")
-    .attr("text-anchor", "middle")
-    .attr("transform", "rotate(-90)")
-    .text("Revenue");
-
-
-    d3.json("/public/data/revenues.json").then(function(data){
-        // console.log(data);
-    
-        // Clean data
-        data.forEach(function(d) {
-            d.revenue = +d.revenue;
-            d.profit = +d.profit;
+d3.json("/public/data/coins.json").then(function(data){
+    // Prepare and clean data
+    filteredData = {};
+    for (var coin in data) {
+        if (!data.hasOwnProperty(coin)) {
+            continue;
+        }
+        filteredData[coin] = data[coin].filter(function(d){
+            return !(d["price_usd"] == null)
+        })
+        filteredData[coin].forEach(function(d){
+            d["price_usd"] = +d["price_usd"];
+            d["24h_vol"] = +d["24h_vol"];
+            d["market_cap"] = +d["market_cap"];
+            d["date"] = parseTime(d["date"])
         });
-    
-        d3.interval(function(){
-            var newData = flag ? data : data.slice(1);
-    
-            update(newData)
-            flag = !flag
-        }, 1000);
-    
-        // Run the vis for the first time
-        update(data);
-    });
-    
+    }
 
-function update(data) {
-    var value = flag ? "revenue" : "profit";
+    lineChart1 = new LineChart("#chart-area1", "bitcoin");
+    lineChart2 = new LineChart("#chart-area2", "ethereum");
+    lineChart3 = new LineChart("#chart-area3", "bitcoin_cash");
+    lineChart4 = new LineChart("#chart-area4", "litecoin");
+    lineChart5 = new LineChart("#chart-area5", "ripple");
+    // pieChart1 = new PieChart("#chart-area6");
 
-    x.domain(data.map(function(d){ return d.month }));
-    y.domain([0, d3.max(data, function(d) { return d[value] })])
+})
 
-    // X Axis
-    var xAxisCall = d3.axisBottom(x);
-    xAxisGroup.transition(t).call(xAxisCall);;
-
-    // Y Axis
-    var yAxisCall = d3.axisLeft(y)
-        .tickFormat(function(d){ return "$" + d; });
-    yAxisGroup.transition(t).call(yAxisCall);
-
-    // JOIN new data with old elements.
-    var rects = g.selectAll("rect")
-        .data(data, function(d){
-            return d.month;
-        });
-
-    // EXIT old elements not present in new data.
-    rects.exit()
-        .attr("fill", "red")
-    .transition(t)
-        .attr("y", y(0))
-        .attr("height", 0)
-        .remove();
-
-    // ENTER new elements present in new data...
-    rects.enter()
-        .append("rect")
-            .attr("fill", "grey")
-            .attr("y", y(0))
-            .attr("height", 0)
-            .attr("x", function(d){ return x(d.month) })
-            .attr("width", x.bandwidth)
-            // AND UPDATE old elements present in new data.
-            .merge(rects)
-            .transition(t)
-                .attr("x", function(d){ return x(d.month) })
-                .attr("width", x.bandwidth)
-                .attr("y", function(d){ return y(d[value]); })
-                .attr("height", function(d){ return height - y(d[value]); });
-
-    var label = flag ? "Revenue" : "Profit";
-    yLabel.text(label);
-
+function updateCharts(){
+    lineChart1.wrangleData()
+    lineChart2.wrangleData()
+    lineChart3.wrangleData()
+    lineChart4.wrangleData()
+    lineChart5.wrangleData()
 }
-

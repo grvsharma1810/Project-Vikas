@@ -1,0 +1,13 @@
+{
+	"Area1": [
+		{ "region": "Category A", "count": "60"},
+		{ "region": "Category B", "count": "40"}
+	],
+	"Area2": [
+		{ "region": "North", "count": "200"},
+		{ "region": "South", "count": "200"},
+		{ "region": "East", "count": "200"},
+		{ "region": "West", "count": "200"},
+		{ "region": "Central", "count": "200"}
+	]
+}
