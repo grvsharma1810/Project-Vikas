@@ -3,7 +3,7 @@ margin1 = { left:50, right:20, top:50, bottom:20 };
     var height1 = 250 - margin1.top - margin1.bottom;
 
 // parse the date / time
-var parseTime = d3.timeParse("%d-%b-%y");
+var parseTime = d3.timeParse("%d/%m/%Y");
 
 // set the ranges
 var x1 = d3.scaleTime().range([0, width1]);
@@ -33,11 +33,12 @@ var svg1 = d3.selectAll("#chart-area7").append("svg")
 // get the data
 d3.csv("/public/data/area.csv").then(data=>{
 
-  data.forEach(function(d) {
-      d.date = parseTime(d.date);
-      d.close = +d.close;
-  });
-  console.log(data)
+  data = data.map(d=>{
+    d.date = parseTime(d.date);
+    d.close = +d.close;
+    return d;
+    })
+    //console.log(data);
   // scale the range of the data
   x1.domain(d3.extent(data, function(d) { return d.date; }));
   y1.domain([0, d3.max(data, function(d) { return d.close; })]);
@@ -46,7 +47,8 @@ d3.csv("/public/data/area.csv").then(data=>{
     svg1.append("path")
        .data([data])
        .attr("class", "area")
-       .attr("d", area);
+       .attr("d", area)
+       .attr("fill","lightsteelblue");
 
   // add the valueline path.
   svg1.append("path")
